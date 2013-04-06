@@ -1,4 +1,7 @@
-package main
+/*
+Package gowiki is an implementation of a wiki inspired tutorial from the Go docs
+*/
+package gowiki
 
 import (
 	"errors"

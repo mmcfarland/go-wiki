@@ -22,23 +22,20 @@ func loadPage(title string) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Page{Title:filename, Body:body}, nil
+	return &Page{Title:title, Body:body}, nil
 }
 
 
-;; Web server
 const lenPath = len("/view/")
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Path[lenPath:]
-	p, _ loadPage(title)
-	fmt.Fprint(w, "<h1>%s</h1><div>%s</div>", p.Title, (string)p.Body)
+	p, _ := loadPage(title)
+	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
 }
 
 func main() {
-	p1 := &Page{Title: "MattPage", Body: []byte("This is my go program")}
- 	p1.save()
-	
-	p2, _ := loadPage("MattPage")	
-	fmt.Println(string(p2.Body))
+	http.HandleFunc("/view/", viewHandler)
+	http.ListenAndServe(":8888", nil)
 }
+

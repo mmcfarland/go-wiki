@@ -1,16 +1,16 @@
 package main
 
 import (
+	"errors"
+	"html/template"
 	"io/ioutil"
 	"net/http"
-	"html/template"
 	"regexp"
-	"errors"
 )
 
 type Page struct {
 	Title string
-	Body []byte
+	Body  []byte
 }
 
 func (p *Page) save() error {
@@ -24,7 +24,7 @@ func loadPage(title string) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Page{Title:title, Body:body}, nil
+	return &Page{Title: title, Body: body}, nil
 }
 
 // Web Server
@@ -36,14 +36,14 @@ const lenPath = len("/view/")
 func getTitle(w http.ResponseWriter, r *http.Request) (title string, err error) {
 	title = r.URL.Path[lenPath:]
 	if !titleValidator.MatchString(title) {
-		http.NotFound(w,r)
+		http.NotFound(w, r)
 		err = errors.New("Invalid Page Title")
 	}
 	return
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	err := templates.ExecuteTemplate(w, tmpl + ".html", p)
+	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -54,7 +54,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadPage(title)
 	// If no page, let them edit (add) it	
 	if err != nil {
-		http.Redirect(w, r, "/edit/" + title, http.StatusFound)
+		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 	}
 	renderTemplate(w, "view", p)
 }
@@ -62,9 +62,9 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadPage(title)
 	if err != nil {
-		p = &Page{Title:title }
+		p = &Page{Title: title}
 	}
-	renderTemplate(w, "edit", p)	
+	renderTemplate(w, "edit", p)
 }
 
 func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
@@ -75,13 +75,13 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/view/"+title, http.StatusFound) 
+	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
 // Close over handler functions which require a page title
 func makeHandler(fn func(w http.ResponseWriter, r *http.Request, title string)) http.HandlerFunc {
-	return func (w http.ResponseWriter, r *http.Request) {
-		title, err := getTitle(w,r)
+	return func(w http.ResponseWriter, r *http.Request) {
+		title, err := getTitle(w, r)
 		if err != nil {
 			return
 		}
@@ -95,4 +95,3 @@ func main() {
 	http.HandleFunc("/save/", makeHandler(saveHandler))
 	http.ListenAndServe(":8888", nil)
 }
-
